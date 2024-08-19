@@ -5,4 +5,7 @@ library(knitr)
 library(rmarkdown)
 
 # Load the data
-activity_data <- read.csv("/data/activity.csv")
+activity_data <- read.csv("activity.csv")
+
+# Preview the data
+head(activity_data)
