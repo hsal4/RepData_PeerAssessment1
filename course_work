@@ -64,6 +64,5 @@ ggplot(average_steps_by_day_type, aes(x = interval, y = average_steps, color = d
   labs(title = "Average Steps by Interval: Weekday vs. Weekend", x = "Interval", y = "Average Steps")
 # Knit the R Markdown file to HTML
 rmarkdown::render("PA1_template.Rmd")
-
 # Render the R Markdown document ------------------------------------------
 render("PA1_template.Rmd")
