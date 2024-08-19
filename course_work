@@ -1,6 +1,8 @@
 # Load necessary packages
 library(dplyr)
 library(ggplot2)
+library(knitr)
+library(rmarkdown)
 
 # Load the data
 activity_data <- read.csv("/mnt/data/activity.csv")
