@@ -1,0 +1,66 @@
+# Load necessary packages
+library(dplyr)
+library(ggplot2)
+
+# Load the data
+activity_data <- read.csv("/mnt/data/activity.csv")
+
+# Preview the data
+head(activity_data)
+# Convert the date column to Date type
+activity_data$date <- as.Date(activity_data$date)
+
+# Check for missing values
+sum(is.na(activity_data$steps))
+# Sum of steps taken per day
+total_steps_per_day <- activity_data %>%
+  group_by(date) %>%
+  summarize(total_steps = sum(steps, na.rm = TRUE))
+
+# Plot the histogram
+ggplot(total_steps_per_day, aes(x = total_steps)) +
+  geom_histogram(binwidth = 1000, fill = "blue", color = "black") +
+  labs(title = "Total Steps per Day", x = "Total Steps", y = "Frequency")
+
+# Calculate mean and median
+mean_steps <- mean(total_steps_per_day$total_steps)
+median_steps <- median(total_steps_per_day$total_steps)
+
+mean_steps
+median_steps
+# Average number of steps per interval
+average_daily_activity <- activity_data %>%
+  group_by(interval) %>%
+  summarize(average_steps = mean(steps, na.rm = TRUE))
+
+# Plot the time series
+ggplot(average_daily_activity, aes(x = interval, y = average_steps)) +
+  geom_line(color = "blue") +
+  labs(title = "Average Daily Activity Pattern", x = "Interval", y = "Average Steps")
+# Calculate total missing values
+missing_values <- sum(is.na(activity_data$steps))
+
+# Impute missing values
+activity_data_imputed <- activity_data
+activity_data_imputed$steps[is.na(activity_data_imputed$steps)] <- 
+  average_daily_activity$average_steps[match(activity_data_imputed$interval[is.na(activity_data_imputed$steps)], average_daily_activity$interval)]
+
+# Verify imputation
+sum(is.na(activity_data_imputed$steps))
+
+# Create a weekday/weekend factor variable
+activity_data_imputed$day_type <- ifelse(weekdays(activity_data_imputed$date) %in% c("Saturday", "Sunday"), "weekend", "weekday")
+
+# Calculate average steps by interval and day type
+average_steps_by_day_type <- activity_data_imputed %>%
+  group_by(interval, day_type) %>%
+  summarize(average_steps = mean(steps))
+
+# Plot the panel plot
+ggplot(average_steps_by_day_type, aes(x = interval, y = average_steps, color = day_type)) +
+  geom_line() +
+  facet_wrap(~ day_type, ncol = 1) +
+  labs(title = "Average Steps by Interval: Weekday vs. Weekend", x = "Interval", y = "Average Steps")
+
+# Knit the R Markdown file to HTML
+rmarkdown::render("PA1_template.Rmd")
