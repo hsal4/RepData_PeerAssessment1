@@ -6,6 +6,5 @@ library(rmarkdown)
 
 # Load the data
 Data <- read.csv(file.path(filePath, "activity.csv"))
-head(Data)# Load the data
-Data <- read.csv(file.path(filePath, "activity.csv"))
 head(Data)
+
