@@ -1,0 +1,62 @@
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+# Load the NOAA Storm Database (assuming the CSV.bz2 file is in the working directory)
+storm_data <- read.csv("repdata_data_StormData.csv.bz2")
+# Summarize total fatalities and injuries by event type
+health_impact <- storm_data %>%
+  group_by(EVTYPE) %>%
+  summarize(
+    total_fatalities = sum(FATALITIES, na.rm = TRUE),
+    total_injuries = sum(INJURIES, na.rm = TRUE)
+  ) %>%
+  mutate(total_health_impact = total_fatalities + total_injuries) %>%
+  arrange(desc(total_health_impact))
+
+# View the top 10 event types by total health impact
+head(health_impact, 10)
+# Function to convert damage exponents to numeric values
+convert_exponent <- function(exp) {
+  exp <- toupper(exp)
+  ifelse(exp == "H", 100,
+         ifelse(exp == "K", 1e3,
+                ifelse(exp == "M", 1e6,
+                       ifelse(exp == "B", 1e9, 1))))
+}
+
+# Apply the conversion function
+storm_data <- storm_data %>%
+  mutate(
+    prop_dmg_exp = convert_exponent(PROPDMGEXP),
+    crop_dmg_exp = convert_exponent(CROPDMGEXP),
+    total_prop_dmg = PROPDMG * prop_dmg_exp,
+    total_crop_dmg = CROPDMG * crop_dmg_exp
+  )
+
+# Summarize total property and crop damage by event type
+economic_impact <- storm_data %>%
+  group_by(EVTYPE) %>%
+  summarize(
+    total_prop_dmg = sum(total_prop_dmg, na.rm = TRUE),
+    total_crop_dmg = sum(total_crop_dmg, na.rm = TRUE),
+    total_economic_impact = total_prop_dmg + total_crop_dmg
+  ) %>%
+  arrange(desc(total_economic_impact))
+
+# View the top 10 event types by total economic impact
+head(economic_impact, 10)
+# Top 10 event types for health impact
+ggplot(head(health_impact, 10), aes(x = reorder(EVTYPE, -total_health_impact), y = total_health_impact)) +
+  geom_bar(stat = "identity", fill = "tomato") +
+  coord_flip() +
+  labs(title = "Top 10 Most Harmful Event Types to Population Health",
+       x = "Event Type", y = "Total Health Impact (Fatalities + Injuries)") +
+  theme_minimal()
+
+# Top 10 event types for economic impact
+ggplot(head(economic_impact, 10), aes(x = reorder(EVTYPE, -total_economic_impact), y = total_economic_impact)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 10 Event Types with Greatest Economic Consequences",
+       x = "Event Type", y = "Total Economic Impact (Property + Crop Damage)") +
+  theme_minimal()
